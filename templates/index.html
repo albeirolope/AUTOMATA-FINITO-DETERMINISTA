@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title>AFD</title>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <style type="text/css">
+      #mynetwork {
+        width: 600px;
+        height: 400px;
+        padding: auto;
+        margin:  auto;
+        border: 1px solid rgb(172, 74, 74);
+        background: white;
+      }
+      #histoy{
+        width: 600px;
+        height: 400px;
+        padding: auto;
+        margin-left:initial;
+        border: 1px solid rgb(0, 0, 0);
+        
+      }
+      
+      body{
+        background: rgb(2,0,36);
+        background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+        color: aliceblue;    
+        font: 20px;  }
+      #lenguaje1{
+        background: white;
+        color: black;
+        font: 20px;
+      }  
+      #lenguaje2{
+        background: white;
+        color: black;
+        font: 20px;
+      }  
+      #btnValidar{
+        background: white;
+        color: black;
+        font: 20px;
+      }  
+      
+      
+    </style>
+  </head>
+  <body>
+    <button id="lenguaje1" onclick="changeLanguage('es')">Español</button>
+  <button id="lenguaje2" onclick="changeLanguage('en')">English</button>
+
+    <div id="mynetwork"></div>
+    <div id="history"></div>
+    <input type="text" id="inputPalabra" method="get" placeholder="Escribe una palabra">
+    <button id="btnValidar">Validar Cadena</button>
+    <p id="resultado"></p>
+    <p id="Simbolos"></p>
+    <div class="animation-container">
+      <div id="animacion"class="animation">Velocidad</div>
+    </div>
+    <div class="control-bar">
+      <input type="range" min="500" max="1999" value="5" id="speedRange">
+    </div>
+    <div id="insertar"></div>
+    
+    <script type="text/javascript">
+      // create an array with nodes
+      var nodes = new vis.DataSet([
+        { id: 0, label: "q0", color: {background: "#ff0000"}},
+        { id: 1, label: "q1" ,color: {background: "#ff0000", border:"#000000"}, font:{color:"black"}},
+        { id: 2, label: "q2",color: {background: "#ff0000"}},
+        { id: 3, label: "q3" ,color: {background: "#ff0000"}},
+        { id: 4, label: "q4",color: {background: "#ff0000",border:"#000000"} , font:{color:"black"}},
+        
+        { id: 5, label: "q5" ,color: {background: "#ff0000", border:"#000000"}, font:{color:"black"}},
+      ]);      
+      
+      // create an array with edges
+      var edges = new vis.DataSet([
+        { from: 0,label:" a " , to: 1, arrows: "to"},
+        { from: 1,label:" b " , to: 2, arrows: "to"},
+        { from: 2,label:" b " , to: 3, arrows: "to"},
+        { from: 3,label:" a ", to: 4, arrows: "to" },
+        { from: 4,label:" b ", to: 2, arrows: "to" },
+        
+       
+        { from: 5,label:" b ", to: 2, arrows: "to"},
+        { from: 2,label:" a " , to: 5, arrows: "to"}
+      ]);
+
+      // create a network
+      var container = document.getElementById("mynetwork");
+      var data = {
+        nodes: nodes,
+        edges: edges,
+      };
+      var options = {
+        nodes: {
+          shape: "circule",
+          size: 20,
+          color: {
+            background: "#ff0000",
+            border: "#000000",
+            highlight: {
+              background: "#00ff00",
+              border: "#000000",
+            },
+          },
+          font: {
+            color: "#ffffff",
+            size: 14,
+          },
+        },
+        edges: {
+          arrows: {
+            to: { enabled: true, scaleFactor: 1, type: "arrow" },
+          },
+        },
+      };
+      
+      
+      var network = new vis.Network(container, data, options);
+      
+      
+      
+      function transiciones(estadoActual, simbolo){ // Mapa de transiciones
+      if(nodes.get(0).id==estadoActual && simbolo=='a'){ return nodes.get(1);}
+      else if (nodes.get(1).id==estadoActual && simbolo=='b'){return nodes.get(2);}
+      else if (nodes.get(2).id==estadoActual && simbolo=='b'){ return nodes.get(3); }
+      else if (nodes.get(3).id==estadoActual && simbolo=='a'){ return nodes.get(4); }
+      else if (nodes.get(4).id==estadoActual && simbolo=='b'){ return nodes.get(2);}
+      
+      
+      
+      else if (nodes.get(5).id==estadoActual && simbolo=='b'){ return nodes.get(2);}
+      else if (nodes.get(2).id==estadoActual && simbolo=='a'){ return nodes.get(5);}
+      else { return undefined;}
+      
+    };
+    function sintetizadorDeVoz(texto) {
+      speechSynthesis.speak(new SpeechSynthesisUtterance(texto));
+    }
+    function apagarNodo(nodo){
+      cambiarFondoNodo(nodo,"red");
+    }
+    function encenderNodo(nodo){
+      cambiarFondoNodo(nodo,"#00ff00")
+    }
+    function animateArrayTraversal(array,array2, delay) {
+          let i = 0;
+
+          function updateArray() {
+            // Actualizar el estado del arreglo o realizar operaciones en cada iteración
+            if(array[i-1]>=0){
+              apagarNodo(array[i-1]);
+            }
+            encenderNodo(array[i]);
+            console.log(array2[i]);
+            var simbolos= document.getElementById("Simbolos");
+            if(array2[i]===undefined){
+              array2[i]=" || ";
+            }
+            simbolos.textContent=simbolos.textContent+array2[i];
+            // Incrementar el índice
+            i++;
+
+            // Comprobar si se ha alcanzado el final del arreglo
+            if (i < array.length) {
+              // Programar la siguiente iteración con un retardo
+              setTimeout(updateArray, delay);
+            }
+          }
+
+          // Iniciar la animación
+          updateArray();
+        }
+
+        // Llamar a la función de animación con un retardo de 1 segundo entre iteraciones
+        
+      
+      function validaCadena(cadena){
+            
+            
+            let palabrasValidadas=[];
+            let nodosRecorridos=[0];
+            let estadoActual = 0;
+            
+            
+          for (const simbolo of cadena) {
+            
+            const transicion = transiciones(estadoActual, simbolo);
+            if (transicion === undefined) {
+              let función2=[false,palabrasValidadas,nodosRecorridos];
+              return función2;
+              
+            }
+            
+            estadoActual = transicion.id;
+            palabrasValidadas.push(simbolo);
+            if (estadoActual!=0){
+              nodosRecorridos.push(estadoActual);
+            }
+            
+          }
+          let función=[estadoActual,palabrasValidadas,nodosRecorridos];
+          return función;
+  
+      };
+      
+
+      function aceptaCadena(cadena){
+        let validacion=validaCadena(cadena)[0];
+        if(validacion==1 ||validacion==4  || validacion==5 ){
+          return true;
+          
+        }else{
+          return false;
+          
+        }
+        
+      };
+       // Función para cambiar el fondo de un nodo
+    function cambiarFondoNodo(nodeId, color) {
+      // Obtener el nodo por su ID
+      var nodo = nodes.get(nodeId);
+      // Actualizar el color de fondo del nodo
+      nodo.color.background = color;
+      // Actualizar el nodo en el DataSet
+      nodes.update(nodo);
+    }
+
+    // Ejemplo de uso: Cambiar el fondo del Nodo 1 a amarillo después de 2 segundos
+    function reiniciarNodo(){
+      for(var i=0; i<6; i++){
+        apagarNodo(i);
+      }
+    }
+    var aceptaCaden="Palabra aceptada, profe coloquenos 75 puntos";
+    var niegaCaden="Palabra no aceptada";
+    function changeLanguage(language) {
+      const boton = document.getElementById('btnValidar');
+      const barraVelocidad = document.getElementById('animacion');
+      const input = document.getElementById('inputPalabra');
+      // Utilizamos un condicional para cambiar los textos según el idioma seleccionado
+      if (language === 'es') {
+        boton.textContent = 'Validar Cadena';
+        barraVelocidad.textContent = 'Velocidad';
+       input.placeholder="Escribe una palabra";
+       aceptaCaden="Palabra aceptada, profe coloquenos 75 puntos";
+       niegaCaden="Palabra no aceptada";
+      } else if (language === 'en') {
+        boton.textContent = 'Validate String';
+        barraVelocidad.textContent = 'Speed';
+        input.placeholder="Write a word";
+        aceptaCaden="Word accepted, teacher give us 75 points";
+        niegaCaden="Word not accepted";
+      }
+    }
+      var inputPalabra = document.getElementById("inputPalabra");
+      
+        var btnValidar = document.getElementById("btnValidar");
+        var resultado = document.getElementById("resultado");
+        var speedRange = document.getElementById('speedRange');
+        var textoSimbolos=document.getElementById('Simbolos');
+        var insertarElmentoEnBase= document.getElementById('insertar')
+        btnValidar.addEventListener("click", function(){
+          reiniciarNodo();
+          textoSimbolos.textContent="";
+          let palabra = Array.from(inputPalabra.value);
+          
+          
+          if (aceptaCadena(palabra)){
+            resultado.textContent=aceptaCaden;
+            sintetizadorDeVoz(aceptaCaden);
+          }else{
+            resultado.textContent=niegaCaden;
+            sintetizadorDeVoz(niegaCaden);
+          }
+          
+          animateArrayTraversal(validaCadena(palabra)[2],validaCadena(palabra)[1],2000-speedRange.value);
+          
+          
+          
+          
+          
+        });
+     
+    </script>
+   
+  </body>
+</html>
